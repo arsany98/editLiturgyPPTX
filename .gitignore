@@ -1,0 +1,5 @@
+*.pptx
+*.ttf
+dist/
+build/
+__pycache__/

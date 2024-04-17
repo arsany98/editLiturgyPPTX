@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "asposetest"
+version = "0.1.0"
+description = ""
+authors = ["arsany98 <arsanymaged13@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.12"
+aspose-slides = "^24.3.0"
+pillow = "^10.3.0"
+python-pptx = "^0.6.23"
+pyinstaller = "^6.5.0"
+fonttools = "^4.51.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
