@@ -6,6 +6,7 @@ from editpptx.PythonPPTXManager import PythonPPTXManager
 from editpptx.AsposeManager import AsposeManager
 from fontconverter.FontConverter import FontConverter
 from editpptx.TextReplacer import TextReplacer
+from editpptx.TextBoxesFormatter import TextBoxesFormatter
 from pptx.util import Cm
 
 
@@ -100,6 +101,24 @@ def replace_text_ui(root, files):
         for i, file in enumerate(files.get()):
             replacer = TextReplacer()
             replacer.edit_ppt(file, find.get(), replace.get())
+            print(str(i + 1) + ". " + file)
+
+    ttk.Button(frm, text="Apply", command=edit_all_files).grid(row=2, column=2)
+    ttk.Button(frm, text="Quit", command=root.destroy).grid(column=3, row=2)
+    root.mainloop()
+
+
+def format_textbox_ui(root, files):
+    frm = ttk.Frame(root, padding=10)
+    frm.grid()
+    ttk.Label(frm, text="line width:").grid(row=1, column=0)
+    line_width = DoubleVar()
+    ttk.Entry(frm, textvariable=line_width, width=5).grid(row=1, column=1)
+
+    def edit_all_files():
+        for i, file in enumerate(files.get()):
+            formatter = TextBoxesFormatter(line_width.get())
+            formatter.edit_ppt(file)
             print(str(i + 1) + ". " + file)
 
     ttk.Button(frm, text="Apply", command=edit_all_files).grid(row=2, column=2)
@@ -207,6 +226,13 @@ def GUI():
         window.resizable(False, False)
         replace_text_ui(window, files)
 
+    def open_format_textbox_ui():
+        window = Toplevel(root)
+        window.grab_set()
+        window.title("Format Text Boxes")
+        window.resizable(False, False)
+        format_textbox_ui(window, files)
+
     ttk.Button(
         frm, text="Change Slide Size", command=open_change_slide_size_ui, width=64
     ).grid(row=1, columnspan=4)
@@ -219,8 +245,11 @@ def GUI():
     ttk.Button(frm, text="Replace Text", command=open_replace_text_ui, width=64).grid(
         row=4, columnspan=4
     )
+    ttk.Button(
+        frm, text="Format Text Boxes", command=open_format_textbox_ui, width=64
+    ).grid(row=5, columnspan=4)
     ttk.Button(frm, text="Quit", command=root.destroy, width=64).grid(
-        row=5, columnspan=4
+        row=6, columnspan=4
     )
     root.mainloop()
 
