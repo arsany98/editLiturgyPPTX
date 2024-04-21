@@ -29,6 +29,23 @@ class AsposeManager:
                     result.append(FontData(font["name"].getDebugName(1)))
         return result
 
+    def get_embedded_fonts(self, files):
+        fonts = {}
+        for file in files:
+            presentation = slidesPresentation(file)
+            embeddedFonts = presentation.fonts_manager.get_embedded_fonts()
+            embeddedFonts = [(x.font_name, x) for x in embeddedFonts]
+            fonts.update(embeddedFonts)
+        return fonts
+
+    def remove_embedded_font(self, file, font_data):
+        try:
+            presentation = slidesPresentation(file)
+            presentation.fonts_manager.remove_embedded_font(font_data)
+            presentation.save(file, export.SaveFormat.PPTX)
+        except Exception as e:
+            print(e)
+
     def embed_fonts(self, file, font_dir):
         presentation = slidesPresentation(file)
         allFonts = self.get_font_files(font_dir)
