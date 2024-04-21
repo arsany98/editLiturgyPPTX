@@ -5,6 +5,7 @@ import asyncio
 from editpptx.PythonPPTXManager import PythonPPTXManager
 from editpptx.AsposeManager import AsposeManager
 from fontconverter.FontConverter import FontConverter
+from editpptx.TextReplacer import TextReplacer
 from pptx.util import Cm
 
 
@@ -38,9 +39,9 @@ def convert_fonts_ui(root, files):
     dest.set(options[0])
 
     ttk.Label(frm, text="From:").grid(row=0, column=0)
-    ttk.OptionMenu(frm, src, *options).grid(row=0, column=1)
+    ttk.OptionMenu(frm, src, None, *options).grid(row=0, column=1)
     ttk.Label(frm, text="To:").grid(row=0, column=2)
-    ttk.OptionMenu(frm, dest, *options).grid(row=0, column=3)
+    ttk.OptionMenu(frm, dest, None, *options).grid(row=0, column=3)
 
     def edit_all_files():
         for i, file in enumerate(files.get()):
@@ -75,8 +76,30 @@ def embedded_font_ui(root, files):
 
     def edit_all_files():
         for i, file in enumerate(files.get()):
-            aspose_manager.embed_fonts(file, font_dir.get())
+            if font_dir.get() != "":
+                aspose_manager.embed_fonts(file, font_dir.get())
             aspose_manager.remove_water_mark(file)
+            print(str(i + 1) + ". " + file)
+
+    ttk.Button(frm, text="Apply", command=edit_all_files).grid(row=3, column=2)
+    ttk.Button(frm, text="Quit", command=root.destroy).grid(row=3, column=3)
+    root.mainloop()
+
+
+def replace_text_ui(root, files):
+    frm = ttk.Frame(root, padding=10)
+    frm.grid()
+    find = StringVar()
+    replace = StringVar()
+    ttk.Label(frm, text="Find:").grid(row=0, column=0)
+    ttk.Entry(frm, textvariable=find).grid(row=0, column=1)
+    ttk.Label(frm, text="Replace:").grid(row=0, column=2)
+    ttk.Entry(frm, textvariable=replace).grid(row=0, column=3)
+
+    def edit_all_files():
+        for i, file in enumerate(files.get()):
+            replacer = TextReplacer()
+            replacer.edit_ppt(file, find.get(), replace.get())
             print(str(i + 1) + ". " + file)
 
     ttk.Button(frm, text="Apply", command=edit_all_files).grid(row=2, column=2)
@@ -84,34 +107,9 @@ def embedded_font_ui(root, files):
     root.mainloop()
 
 
-def GUI():
-    root = Tk()
-    root.title("Edit PPTX")
-    root.resizable(False, False)
-    files = Variable(value=[])
-
-    def choose_dir():
-        path = filedialog.askdirectory(title="Choose pptx files directory:")
-        if path is not None and path != "":
-            files.set(asyncio.run(get_pptx_files(path)))
-            dir_label.set(f"Found {len(files.get())} pptx files")
-
-    def choose_files():
-        paths = filedialog.askopenfilenames(
-            title="Choose pptx files:", filetypes=[("power point", "pptx")]
-        )
-        if paths is not None and paths != []:
-            files.set(paths)
-            dir_label.set(f"Found {len(files.get())} pptx files")
-
+def change_slide_size_ui(root, files):
     frm = ttk.Frame(root, padding=10)
     frm.grid()
-    ttk.Label(frm, text="Choose pptx files: ").grid(row=0, column=0)
-    ttk.Button(frm, text="Choose Dir...", command=choose_dir).grid(row=0, column=1)
-    ttk.Button(frm, text="Choose Files...", command=choose_files).grid(row=0, column=2)
-    dir_label = StringVar(value="No directory chosen.")
-    ttk.Label(frm, textvariable=dir_label).grid(row=0, column=3)
-
     ttk.Label(frm, text="New width:").grid(row=1, column=0)
     width = DoubleVar()
     ttk.Entry(frm, textvariable=width, width=5).grid(row=1, column=1)
@@ -149,27 +147,81 @@ def GUI():
     ttk.Checkbutton(
         frm, text="Move Tables to master line", variable=move_table_to_master_line
     ).grid(row=3, column=1)
+    ttk.Button(frm, text="Apply", command=edit_all_files).grid(row=4, column=2)
+    ttk.Button(frm, text="Quit", command=root.destroy).grid(row=4, column=3)
+
+
+def GUI():
+    root = Tk()
+    root.title("Edit PPTX")
+    root.resizable(False, False)
+    files = Variable(value=[])
+
+    def choose_dir():
+        path = filedialog.askdirectory(title="Choose pptx files directory:")
+        if path is not None and path != "":
+            files.set(asyncio.run(get_pptx_files(path)))
+            dir_label.set(f"Found {len(files.get())} pptx files")
+
+    def choose_files():
+        paths = filedialog.askopenfilenames(
+            title="Choose pptx files:", filetypes=[("power point", "pptx")]
+        )
+        if paths is not None and paths != []:
+            files.set(paths)
+            dir_label.set(f"Found {len(files.get())} pptx files")
+
+    frm = ttk.Frame(root, padding=10)
+    frm.grid()
+    ttk.Label(frm, text="Choose pptx files: ").grid(row=0, column=0)
+    ttk.Button(frm, text="Choose Dir...", command=choose_dir).grid(row=0, column=1)
+    ttk.Button(frm, text="Choose Files...", command=choose_files).grid(row=0, column=2)
+    dir_label = StringVar(value="No directory chosen.")
+    ttk.Label(frm, textvariable=dir_label).grid(row=0, column=3)
+
+    def open_change_slide_size_ui():
+        window = Toplevel(root)
+        window.grab_set()
+        window.title("Change Slide Size")
+        window.resizable(False, False)
+        change_slide_size_ui(window, files)
 
     def open_embedded_fonts_ui():
         window = Toplevel(root)
         window.grab_set()
         window.title("Embed Fonts to PPTX")
+        window.resizable(False, False)
         embedded_font_ui(window, files)
 
     def open_convert_fonts_ui():
         window = Toplevel(root)
         window.grab_set()
         window.title("Convert Fonts")
+        window.resizable(False, False)
         convert_fonts_ui(window, files)
 
-    ttk.Button(frm, text="Embedded Fonts", command=open_embedded_fonts_ui).grid(
-        row=4, column=0
+    def open_replace_text_ui():
+        window = Toplevel(root)
+        window.grab_set()
+        window.title("Replace Text")
+        window.resizable(False, False)
+        replace_text_ui(window, files)
+
+    ttk.Button(
+        frm, text="Change Slide Size", command=open_change_slide_size_ui, width=64
+    ).grid(row=1, columnspan=4)
+    ttk.Button(
+        frm, text="Embedded Fonts", command=open_embedded_fonts_ui, width=64
+    ).grid(row=2, columnspan=4)
+    ttk.Button(frm, text="Convert Fonts", command=open_convert_fonts_ui, width=64).grid(
+        row=3, columnspan=4
     )
-    ttk.Button(frm, text="Convert Fonts", command=open_convert_fonts_ui).grid(
-        row=4, column=1
+    ttk.Button(frm, text="Replace Text", command=open_replace_text_ui, width=64).grid(
+        row=4, columnspan=4
     )
-    ttk.Button(frm, text="Apply", command=edit_all_files).grid(row=4, column=2)
-    ttk.Button(frm, text="Quit", command=root.destroy).grid(row=4, column=3)
+    ttk.Button(frm, text="Quit", command=root.destroy, width=64).grid(
+        row=5, columnspan=4
+    )
     root.mainloop()
 
 
