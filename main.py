@@ -46,6 +46,8 @@ def convert_fonts_ui(root, files):
         for i, file in enumerate(files.get()):
             font_converter = FontConverter()
             font_converter.convert_all_text(file, src.get(), dest.get())
+            font_converter.change_font(file, src.get(), dest.get())
+            aspose_manager.remove_water_mark(file)
             print(str(i + 1) + ". " + file)
 
     ttk.Button(frm, text="Apply", command=edit_all_files).grid(row=2, column=2)
