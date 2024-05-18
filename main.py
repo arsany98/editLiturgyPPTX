@@ -30,6 +30,7 @@ def convert_fonts_ui(root, files):
     options = [
         "CS New Athanasius",
         "Avva_Shenouda",
+        "Abraam",
         "Unicode",
     ]
 

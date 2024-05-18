@@ -1,5 +1,6 @@
 from .Avva_ShenoudaFont import Avva_ShenoudaFont
 from .CS_New_AthanasiusFont import CS_New_AthanasiusFont
+from .AbraamFont import AbraamFont
 from .UnicodeText import UnicodeText
 
 
@@ -11,4 +12,6 @@ class CopticFontFactory:
             return CS_New_AthanasiusFont()
         elif fontName == "Coptic New Athanasius":
             return UnicodeText()
+        elif fontName == "Abraam":
+            return AbraamFont()
         return None

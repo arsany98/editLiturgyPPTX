@@ -1,17 +1,33 @@
-from .convert_util import convert
+from .convert_util import convert, fix_punc
 from pptx import Presentation
+from pptx.enum.dml import MSO_COLOR_TYPE
 from aspose.slides import Presentation as slidesPresentation
 from aspose.slides import util, export, FontData
+import re
 
 
 class FontConverter:
     def convert_font(self, text_frame, src, dest):
+        if self.is_arabic(text_frame.text):
+            return
         prgs = text_frame.paragraphs
         for prg in prgs:
-            for run in prg.runs:
-                if run.font.name == src:
-                    converted = convert(run.text, src, dest)
-                    run.text = converted
+            runs = prg.runs
+            for i in range(len(runs)):
+                if runs[i].font.name == src:
+                    prev = ""
+                    next = ""
+                    if i > 0:
+                        prev = runs[i - 1].text
+                    if i < len(runs) - 1:
+                        next = runs[i + 1].text
+                    converted = convert(runs[i].text, src, dest)
+                    prev, curr, next = fix_punc(converted, prev, next, src, dest)
+                    if i > 0:
+                        runs[i - 1].text = prev
+                    if i < len(runs) - 1:
+                        runs[i + 1].text = next
+                    runs[i].text = curr
 
     def convert_all_text(self, file, src, dest):
         if src == "Unicode":
@@ -37,6 +53,8 @@ class FontConverter:
         ppt = slidesPresentation(file)
         textFramesPPTX = util.SlideUtil.get_all_text_frames(ppt, True)
         for idx, text_frame in enumerate(textFramesPPTX):
+            if self.is_arabic(text_frame.text):
+                continue
             prgs = text_frame.paragraphs
             for prg in prgs:
                 for port in prg.portions:
@@ -47,12 +65,12 @@ class FontConverter:
                         if dest == "Coptic New Athanasius":
                             port.portion_format.latin_font = FontData(dest)
                             port.portion_format.east_asian_font = FontData(dest)
-                            port.portion_format.complex_script_font = None
-                            port.portion_format.symbol_font = None
                         else:
                             port.portion_format.latin_font = FontData(dest)
                             port.portion_format.east_asian_font = None
-                            port.portion_format.complex_script_font = None
-                            port.portion_format.symbol_font = None
-
         ppt.save(file, export.SaveFormat.PPTX)
+
+    def is_arabic(self, text):
+        pattern = re.compile(".*[\\u0600-\\u06FF]")
+        match = pattern.match(text)
+        return match is not None

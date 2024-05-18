@@ -1,6 +1,24 @@
 from .CopticFontFactory import CopticFontFactory
 
 
+def fix_punc(text, prev, next, srcFont, destFont):
+    src = CopticFontFactory.getFont(srcFont)
+    dest = CopticFontFactory.getFont(destFont)
+    destLetters = dest.get_letters()
+    punc = destLetters[-2] + destLetters[-4]
+    if src.get_is_combining() == True and dest.get_is_combining() == False:
+        if text[0] in punc:
+            prev = prev[:-1] + text[0] + prev[-1]
+            text = text[1:]
+        text = shift_punc_left(text, punc)
+    elif src.get_is_combining() == False and dest.get_is_combining() == True:
+        if text[-1] in punc:
+            next = text[-1] + next
+            text = text[:-1]
+        text = shift_punc_right(text, punc)
+    return prev, text, next
+
+
 def convert(text, srcFont, destFont):
     src = CopticFontFactory.getFont(srcFont)
     dest = CopticFontFactory.getFont(destFont)
@@ -12,11 +30,6 @@ def convert(text, srcFont, destFont):
             result += font2[font1.index(c)]
         else:
             result += c
-    if src.get_is_combining() == True and dest.get_is_combining() == False:
-        result = shift_punc_left(result, font2[-2] + font2[-4])
-    elif src.get_is_combining() == False and dest.get_is_combining() == True:
-        result = shift_punc_right(result, font2[-2] + font2[-4])
-
     return result
 
 
