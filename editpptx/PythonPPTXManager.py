@@ -1,13 +1,22 @@
 from pptx.util import Cm, Emu, Pt
 from pptx.enum.shapes import MSO_SHAPE_TYPE
 from pptx import Presentation
+import re
 
 
 class PythonPPTXManager:
-    def __init__(self, new_width, new_height, font_size_increase, exclude_first_slide):
+    def __init__(
+        self,
+        new_width,
+        new_height,
+        font_size_increase,
+        copt_font_size_increase,
+        exclude_first_slide,
+    ):
         self.new_width = new_width
         self.new_height = new_height
         self.font_size_increase = font_size_increase
+        self.copt_font_size_increase = copt_font_size_increase
         self.exclude_first_slide = exclude_first_slide
 
     def change_shape_width(self, shape, exclude):
@@ -58,20 +67,33 @@ class PythonPPTXManager:
             for row in shape.table.rows:
                 row.height = Emu(row.height * ratio)
 
-    def increase_font_size(self, text_frame):
+    def increase_font_size(self, text_frame, font_increase):
         if self.font_size_increase is not None:
             prgs = text_frame.paragraphs
             for prg in prgs:
                 for run in prg.runs:
                     if run.font.size is not None:  # error font less than 0
-                        run.font.size += Pt(self.font_size_increase)
+                        run.font.size += Pt(font_increase)
 
-    def increase_shape_font_size(self, shape):
+    def increase_arabic_shape_font_size(self, shape):
         if shape.has_table:
             for cell in shape.table.iter_cells():
-                self.increase_font_size(cell.text_frame)
+                if self.is_arabic(cell.text_frame.text):
+                    self.increase_font_size(cell.text_frame, self.font_size_increase)
         if shape.has_text_frame and self.font_size_increase is not None:
-            self.increase_font_size(shape.text_frame)
+            if self.is_arabic(shape.text_frame.text):
+                self.increase_font_size(shape.text_frame, self.font_size_increase)
+
+    def increase_coptic_shape_font_size(self, shape):
+        if shape.has_table:
+            for cell in shape.table.iter_cells():
+                if not self.is_arabic(cell.text_frame.text):
+                    self.increase_font_size(
+                        cell.text_frame, self.copt_font_size_increase
+                    )
+        if shape.has_text_frame and self.font_size_increase is not None:
+            if not self.is_arabic(shape.text_frame.text):
+                self.increase_font_size(shape.text_frame, self.copt_font_size_increase)
 
     def edit_slide(self, slide, exclude=False):
         shapes = slide.shapes
@@ -82,7 +104,12 @@ class PythonPPTXManager:
                 self.change_shape_height(shape, exclude)
             if not exclude:
                 if self.font_size_increase is not None and self.font_size_increase != 0:
-                    self.increase_shape_font_size(shape)
+                    self.increase_arabic_shape_font_size(shape)
+                if (
+                    self.copt_font_size_increase is not None
+                    and self.copt_font_size_increase != 0
+                ):
+                    self.increase_coptic_shape_font_size(shape)
 
     def edit_ppt(self, file):
         try:
@@ -104,3 +131,8 @@ class PythonPPTXManager:
             ppt.save(file)
         except Exception as e:
             print(file, "is invalid", e)
+
+    def is_arabic(self, text):
+        pattern = re.compile(".*[\\u0600-\\u06FF]")
+        match = pattern.match(text)
+        return match is not None

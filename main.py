@@ -139,10 +139,15 @@ def change_slide_size_ui(root, files):
     ttk.Entry(frm, textvariable=height, width=5).grid(row=1, column=3)
     ttk.Label(frm, text="Cm").grid(row=1, column=3, sticky=E)
 
-    ttk.Label(frm, text="Font Size Increase:").grid(row=2, column=0)
+    ttk.Label(frm, text="Arabic Font Size Increase:").grid(row=2, column=0)
     font_size_increase = IntVar()
     ttk.Entry(frm, textvariable=font_size_increase, width=4).grid(row=2, column=1)
     ttk.Label(frm, text="Pt").grid(row=2, column=1, sticky=E)
+
+    ttk.Label(frm, text="Coptic Font Size Increase:").grid(row=2, column=2)
+    copt_font_size_increase = IntVar()
+    ttk.Entry(frm, textvariable=copt_font_size_increase, width=4).grid(row=2, column=3)
+    ttk.Label(frm, text="Pt").grid(row=2, column=3, sticky=E)
 
     exclude_first_slide = BooleanVar()
     move_table_to_master_line = BooleanVar()
@@ -152,6 +157,7 @@ def change_slide_size_ui(root, files):
             Cm(width.get()),
             Cm(height.get()),
             font_size_increase.get(),
+            copt_font_size_increase.get(),
             exclude_first_slide.get(),
         )
         for i, file in enumerate(files.get()):
