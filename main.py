@@ -127,15 +127,31 @@ def format_textbox_ui(root, files):
     root.mainloop()
 
 
-def change_slide_size_ui(root, files):
+def reformat_slides_ui(root, files):
     frm = ttk.Frame(root, padding=10)
     frm.grid()
-    ttk.Label(frm, text="New width:").grid(row=1, column=0)
     width = DoubleVar()
+    height = DoubleVar()
+    options = ["Custom", "Standard(4:3)", "Widescreen(16:9)"]
+    aspect_ratio = StringVar()
+    aspect_ratio.set(options[0])
+    ttk.Label(frm, text="Aspect Ratio:").grid(row=0, column=0)
+
+    def on_select(selected):
+        if selected == options[1]:
+            width.set(25.4)
+            height.set(19.05)
+        elif selected == options[2]:
+            width.set(33.867)
+            height.set(19.05)
+
+    ttk.OptionMenu(
+        frm, aspect_ratio, aspect_ratio.get(), *options, command=on_select
+    ).grid(row=0, column=1)
+    ttk.Label(frm, text="New width:").grid(row=1, column=0)
     ttk.Entry(frm, textvariable=width, width=5).grid(row=1, column=1)
     ttk.Label(frm, text="Cm").grid(row=1, column=1, sticky=E)
     ttk.Label(frm, text="New height:").grid(row=1, column=2)
-    height = DoubleVar()
     ttk.Entry(frm, textvariable=height, width=5).grid(row=1, column=3)
     ttk.Label(frm, text="Cm").grid(row=1, column=3, sticky=E)
 
@@ -205,12 +221,12 @@ def GUI():
     dir_label = StringVar(value="No directory chosen.")
     ttk.Label(frm, textvariable=dir_label).grid(row=0, column=3)
 
-    def open_change_slide_size_ui():
+    def open_reformat_slides_ui():
         window = Toplevel(root)
         window.grab_set()
-        window.title("Change Slide Size")
+        window.title("Reformat Slides")
         window.resizable(False, False)
-        change_slide_size_ui(window, files)
+        reformat_slides_ui(window, files)
 
     def open_embedded_fonts_ui():
         window = Toplevel(root)
@@ -241,7 +257,7 @@ def GUI():
         format_textbox_ui(window, files)
 
     ttk.Button(
-        frm, text="Change Slide Size", command=open_change_slide_size_ui, width=64
+        frm, text="Reformat Slides", command=open_reformat_slides_ui, width=64
     ).grid(row=1, columnspan=4)
     ttk.Button(
         frm, text="Embedded Fonts", command=open_embedded_fonts_ui, width=64
