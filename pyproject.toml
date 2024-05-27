@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "asposetest"
+name = "editpptx"
 version = "0.1.0"
 description = ""
 authors = ["arsany98 <arsanymaged13@gmail.com>"]
