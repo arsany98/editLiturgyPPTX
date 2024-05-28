@@ -1,8 +1,9 @@
-from aspose.slides import FontsLoader, export, FontData, Table, ShapeType
+from aspose.slides import FontsLoader, export, FontData, Table
 from aspose.slides import Presentation as slidesPresentation
 from fontTools import ttLib
 import os
 from pptx import Presentation
+from pptx.util import Cm
 
 
 class AsposeManager:
@@ -65,22 +66,14 @@ class AsposeManager:
                 print(f"{font} Font is already embedded.")
         presentation.save(file, export.SaveFormat.PPTX)
 
-    def get_master_line(self, slide_master):
-        shapes = slide_master.shapes
-        for shape in shapes:
-            if shape.shape_type == ShapeType.LINE:
-                return shape
-        return None
-
-    def move_table_to_master_line(self, file):
+    def move_table_to_position(self, file, position):
         presentation = slidesPresentation(file)
-        line = self.get_master_line(presentation.masters[0])
         for slide in presentation.slides:
             tables = 0
             for shape in slide.shapes:
                 if type(shape) == Table:
                     tables += 1
             for shape in slide.shapes:
-                if line is not None and tables == 1 and type(shape) == Table:
-                    shape.y = line.y - shape.rows[0].height
+                if position != 0 and tables == 1 and type(shape) == Table:
+                    shape.y = Cm(position).pt - shape.rows[0].height
         presentation.save(file, export.SaveFormat.PPTX)
