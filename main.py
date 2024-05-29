@@ -176,6 +176,63 @@ def reformat_slides_ui(root, files):
     ttk.Label(frm, text="Cm").grid(row=4, column=1, sticky=E)
     exclude_first_slide = BooleanVar()
 
+    class Margin:
+        def __init__(self):
+            self.left = DoubleVar()
+            self.top = DoubleVar()
+            self.right = DoubleVar()
+            self.bottom = DoubleVar()
+
+    ttk.Label(frm, text="Shape Margin:").grid(row=5, column=0)
+    shape_margin = Margin()
+
+    ttk.Label(frm, text="Left").grid(row=5, column=1, sticky=W)
+    ttk.Entry(frm, textvariable=shape_margin.left, width=4).grid(
+        row=5, column=1, padx=50
+    )
+    ttk.Label(frm, text="Cm").grid(row=5, column=1, sticky=E)
+    ttk.Label(frm, text="Top").grid(row=5, column=2, sticky=W)
+    ttk.Entry(frm, textvariable=shape_margin.top, width=4).grid(
+        row=5, column=2, padx=50
+    )
+    ttk.Label(frm, text="Cm").grid(row=5, column=2, sticky=E)
+    ttk.Label(frm, text="Bottom").grid(row=6, column=1, sticky=W)
+    ttk.Entry(frm, textvariable=shape_margin.bottom, width=4).grid(
+        row=6, column=1, padx=50
+    )
+    ttk.Label(frm, text="Cm").grid(row=6, column=1, sticky=E)
+    ttk.Label(frm, text="Right").grid(row=6, column=2, sticky=W)
+    ttk.Entry(frm, textvariable=shape_margin.right, width=4).grid(
+        row=6, column=2, padx=50
+    )
+    ttk.Label(frm, text="Cm").grid(row=6, column=2, sticky=E)
+
+    ttk.Label(frm, text="Table Margin:").grid(row=7, column=0)
+    table_margin = Margin()
+
+    ttk.Label(frm, text="Left").grid(row=7, column=1, sticky=W)
+    ttk.Entry(frm, textvariable=table_margin.left, width=4).grid(
+        row=7, column=1, padx=50
+    )
+    ttk.Label(frm, text="Cm").grid(row=7, column=1, sticky=E)
+    ttk.Label(frm, text="Top").grid(row=7, column=2, sticky=W)
+    ttk.Entry(frm, textvariable=table_margin.top, width=4).grid(
+        row=7, column=2, padx=50
+    )
+    ttk.Label(frm, text="Cm").grid(row=7, column=2, sticky=E)
+    ttk.Label(frm, text="Bottom").grid(row=8, column=1, sticky=W)
+    ttk.Entry(frm, textvariable=table_margin.bottom, width=4).grid(
+        row=8, column=1, padx=50
+    )
+    ttk.Label(frm, text="Cm").grid(row=8, column=1, sticky=E)
+    ttk.Label(frm, text="Right").grid(row=8, column=2, sticky=W)
+    ttk.Entry(frm, textvariable=table_margin.right, width=4).grid(
+        row=8, column=2, padx=50
+    )
+    ttk.Label(frm, text="Cm").grid(row=8, column=2, sticky=E)
+
+    exclude_first_slide = BooleanVar()
+
     def edit_all_files():
         editor = PythonPPTXManager(
             Cm(width.get()),
@@ -184,6 +241,8 @@ def reformat_slides_ui(root, files):
             copt_font_size_increase.get(),
             exclude_first_slide.get(),
             exclude_outlined.get(),
+            shape_margin,
+            table_margin,
         )
         for i, file in enumerate(files.get()):
             editor.edit_ppt(file)
@@ -192,10 +251,11 @@ def reformat_slides_ui(root, files):
             print(str(i + 1) + ". " + file)
 
     ttk.Checkbutton(frm, text="Exclude First Slide", variable=exclude_first_slide).grid(
-        row=5, column=0
+        row=9, column=0
     )
-    ttk.Button(frm, text="Apply", command=edit_all_files).grid(row=6, column=2)
-    ttk.Button(frm, text="Quit", command=root.destroy).grid(row=6, column=3)
+    ttk.Button(frm, text="Apply", command=edit_all_files).grid(row=10, column=2)
+    ttk.Button(frm, text="Quit", command=root.destroy).grid(row=10, column=3)
+    root.mainloop()
 
 
 def GUI():

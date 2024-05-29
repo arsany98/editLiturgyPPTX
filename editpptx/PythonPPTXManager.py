@@ -14,6 +14,8 @@ class PythonPPTXManager:
         copt_font_size_increase,
         exclude_first_slide,
         exclude_outlined,
+        shape_margin,
+        table_margin,
     ):
         self.new_width = new_width
         self.new_height = new_height
@@ -21,6 +23,8 @@ class PythonPPTXManager:
         self.copt_font_size_increase = copt_font_size_increase
         self.exclude_first_slide = exclude_first_slide
         self.exclude_outlined = exclude_outlined
+        self.shape_margin = shape_margin
+        self.table_margin = table_margin
 
     def change_shape_width(self, shape, exclude):
         ratio = self.new_width / self.old_width
@@ -123,6 +127,7 @@ class PythonPPTXManager:
                     and self.copt_font_size_increase != 0
                 ):
                     self.increase_coptic_shape_font_size(shape)
+                self.set_shape_margin(shape)
 
     def edit_ppt(self, file):
         try:
@@ -149,3 +154,16 @@ class PythonPPTXManager:
         pattern = re.compile(".*[\\u0600-\\u06FF]")
         match = pattern.match(text)
         return match is not None
+
+    def set_text_margin(self, text_frame, margin):
+        text_frame.margin_left = Cm(margin.left.get())
+        text_frame.margin_top = Cm(margin.top.get())
+        text_frame.margin_right = Cm(margin.right.get())
+        text_frame.margin_bottom = Cm(margin.bottom.get())
+
+    def set_shape_margin(self, shape):
+        if shape.has_table:
+            for cell in shape.table.iter_cells():
+                self.set_text_margin(cell, self.table_margin)
+        if shape.has_text_frame:
+            self.set_text_margin(shape.text_frame, self.shape_margin)
