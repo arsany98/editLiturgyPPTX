@@ -1,5 +1,6 @@
 from pptx.util import Cm, Emu, Pt
 from pptx.enum.shapes import MSO_SHAPE_TYPE
+from pptx.enum.dml import MSO_FILL_TYPE
 from pptx import Presentation
 import re
 
@@ -12,12 +13,14 @@ class PythonPPTXManager:
         font_size_increase,
         copt_font_size_increase,
         exclude_first_slide,
+        exclude_outlined,
     ):
         self.new_width = new_width
         self.new_height = new_height
         self.font_size_increase = font_size_increase
         self.copt_font_size_increase = copt_font_size_increase
         self.exclude_first_slide = exclude_first_slide
+        self.exclude_outlined = exclude_outlined
 
     def change_shape_width(self, shape, exclude):
         ratio = self.new_width / self.old_width
@@ -103,6 +106,16 @@ class PythonPPTXManager:
             if self.new_height is not None and self.new_height != 0:
                 self.change_shape_height(shape, exclude)
             if not exclude:
+                if (
+                    self.exclude_outlined
+                    and (
+                        shape.shape_type == MSO_SHAPE_TYPE.TEXT_BOX
+                        or shape.shape_type == MSO_SHAPE_TYPE.AUTO_SHAPE
+                    )
+                    and shape.line.fill.type == MSO_FILL_TYPE.SOLID
+                ):
+                    continue
+
                 if self.font_size_increase is not None and self.font_size_increase != 0:
                     self.increase_arabic_shape_font_size(shape)
                 if (

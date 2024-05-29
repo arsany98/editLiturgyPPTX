@@ -165,10 +165,15 @@ def reformat_slides_ui(root, files):
     ttk.Entry(frm, textvariable=copt_font_size_increase, width=4).grid(row=2, column=3)
     ttk.Label(frm, text="Pt").grid(row=2, column=3, sticky=E)
 
-    ttk.Label(frm, text="Table Line Position:").grid(row=3, column=0)
+    exclude_outlined = BooleanVar()
+    ttk.Checkbutton(frm, text="Exclude Outlined", variable=exclude_outlined).grid(
+        row=3, column=0
+    )
+
+    ttk.Label(frm, text="Table Line Position:").grid(row=4, column=0)
     table_position = DoubleVar()
-    ttk.Entry(frm, textvariable=table_position, width=4).grid(row=3, column=1)
-    ttk.Label(frm, text="Cm").grid(row=3, column=1, sticky=E)
+    ttk.Entry(frm, textvariable=table_position, width=4).grid(row=4, column=1)
+    ttk.Label(frm, text="Cm").grid(row=4, column=1, sticky=E)
     exclude_first_slide = BooleanVar()
 
     def edit_all_files():
@@ -178,6 +183,7 @@ def reformat_slides_ui(root, files):
             font_size_increase.get(),
             copt_font_size_increase.get(),
             exclude_first_slide.get(),
+            exclude_outlined.get(),
         )
         for i, file in enumerate(files.get()):
             editor.edit_ppt(file)
@@ -186,10 +192,10 @@ def reformat_slides_ui(root, files):
             print(str(i + 1) + ". " + file)
 
     ttk.Checkbutton(frm, text="Exclude First Slide", variable=exclude_first_slide).grid(
-        row=4, column=0
+        row=5, column=0
     )
-    ttk.Button(frm, text="Apply", command=edit_all_files).grid(row=5, column=2)
-    ttk.Button(frm, text="Quit", command=root.destroy).grid(row=5, column=3)
+    ttk.Button(frm, text="Apply", command=edit_all_files).grid(row=6, column=2)
+    ttk.Button(frm, text="Quit", command=root.destroy).grid(row=6, column=3)
 
 
 def GUI():
