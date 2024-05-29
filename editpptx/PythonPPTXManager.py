@@ -5,6 +5,18 @@ from pptx import Presentation
 import re
 
 
+def CmOrNone(val):
+    if val == None:
+        return None
+    return Cm(val)
+
+
+def PtOrNone(val):
+    if val == None:
+        return None
+    return Pt(val)
+
+
 class PythonPPTXManager:
     def __init__(
         self,
@@ -16,11 +28,13 @@ class PythonPPTXManager:
         exclude_outlined,
         shape_margin,
         table_margin,
+        line_width,
     ):
-        self.new_width = new_width
-        self.new_height = new_height
-        self.font_size_increase = font_size_increase
-        self.copt_font_size_increase = copt_font_size_increase
+        self.new_width = CmOrNone(new_width)
+        self.new_height = CmOrNone(new_height)
+        self.font_size_increase = PtOrNone(font_size_increase)
+        self.copt_font_size_increase = PtOrNone(copt_font_size_increase)
+        self.line_width = PtOrNone(line_width)
         self.exclude_first_slide = exclude_first_slide
         self.exclude_outlined = exclude_outlined
         self.shape_margin = shape_margin
@@ -75,12 +89,11 @@ class PythonPPTXManager:
                 row.height = Emu(row.height * ratio)
 
     def increase_font_size(self, text_frame, font_increase):
-        if self.font_size_increase is not None:
-            prgs = text_frame.paragraphs
-            for prg in prgs:
-                for run in prg.runs:
-                    if run.font.size is not None:  # error font less than 0
-                        run.font.size += Pt(font_increase)
+        prgs = text_frame.paragraphs
+        for prg in prgs:
+            for run in prg.runs:
+                if run.font.size is not None:  # error font less than 0
+                    run.font.size += font_increase
 
     def increase_arabic_shape_font_size(self, shape):
         if shape.has_table:
@@ -105,9 +118,9 @@ class PythonPPTXManager:
     def edit_slide(self, slide, exclude=False):
         shapes = slide.shapes
         for shape in shapes:
-            if self.new_width is not None and self.new_width != 0:
+            if self.new_width is not None:
                 self.change_shape_width(shape, exclude)
-            if self.new_height is not None and self.new_height != 0:
+            if self.new_height is not None:
                 self.change_shape_height(shape, exclude)
             if not exclude:
                 if (
@@ -128,14 +141,15 @@ class PythonPPTXManager:
                 ):
                     self.increase_coptic_shape_font_size(shape)
                 self.set_shape_margin(shape)
+                self.set_line_width(shape)
 
     def edit_ppt(self, file):
         try:
             ppt = Presentation(file)
-            if self.new_width is not None and self.new_width != 0:
+            if self.new_width is not None:
                 self.old_width = ppt.slide_width
                 ppt.slide_width = self.new_width
-            if self.new_height is not None and self.new_height != 0:
+            if self.new_height is not None:
                 self.old_height = ppt.slide_height
                 ppt.slide_height = self.new_height
 
@@ -156,10 +170,14 @@ class PythonPPTXManager:
         return match is not None
 
     def set_text_margin(self, text_frame, margin):
-        text_frame.margin_left = Cm(margin.left.get())
-        text_frame.margin_top = Cm(margin.top.get())
-        text_frame.margin_right = Cm(margin.right.get())
-        text_frame.margin_bottom = Cm(margin.bottom.get())
+        if margin.left is not None:
+            text_frame.margin_left = Cm(margin.left)
+        if margin.top is not None:
+            text_frame.margin_top = Cm(margin.top)
+        if margin.right is not None:
+            text_frame.margin_right = Cm(margin.right)
+        if margin.bottom is not None:
+            text_frame.margin_bottom = Cm(margin.bottom)
 
     def set_shape_margin(self, shape):
         if shape.has_table:
@@ -167,3 +185,14 @@ class PythonPPTXManager:
                 self.set_text_margin(cell, self.table_margin)
         if shape.has_text_frame:
             self.set_text_margin(shape.text_frame, self.shape_margin)
+
+    def set_line_width(self, shape):
+        if (
+            self.line_width is not None
+            and (
+                shape.shape_type == MSO_SHAPE_TYPE.TEXT_BOX
+                or shape.shape_type == MSO_SHAPE_TYPE.AUTO_SHAPE
+            )
+            and shape.line.fill.type == MSO_FILL_TYPE.SOLID
+        ):
+            shape.line.width = self.line_width

@@ -74,6 +74,6 @@ class AsposeManager:
                 if type(shape) == Table:
                     tables += 1
             for shape in slide.shapes:
-                if position != 0 and tables == 1 and type(shape) == Table:
+                if tables == 1 and type(shape) == Table:
                     shape.y = Cm(position).pt - shape.rows[0].height
         presentation.save(file, export.SaveFormat.PPTX)

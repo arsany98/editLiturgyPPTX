@@ -1,5 +1,5 @@
 from tkinter import *
-from tkinter import ttk, filedialog
+from tkinter import ttk, filedialog, messagebox
 import os
 import asyncio
 from editpptx.PythonPPTXManager import PythonPPTXManager
@@ -7,7 +7,6 @@ from editpptx.AsposeManager import AsposeManager
 from fontconverter.FontConverter import FontConverter
 from editpptx.TextReplacer import TextReplacer
 from editpptx.TextBoxesFormatter import TextBoxesFormatter
-from pptx.util import Cm
 
 
 async def get_pptx_files(dir_path):
@@ -109,29 +108,23 @@ def replace_text_ui(root, files):
     root.mainloop()
 
 
-def format_textbox_ui(root, files):
-    frm = ttk.Frame(root, padding=10)
-    frm.grid()
-    ttk.Label(frm, text="line width:").grid(row=1, column=0)
-    line_width = DoubleVar()
-    ttk.Entry(frm, textvariable=line_width, width=5).grid(row=1, column=1)
-
-    def edit_all_files():
-        for i, file in enumerate(files.get()):
-            formatter = TextBoxesFormatter(line_width.get())
-            formatter.edit_ppt(file)
-            print(str(i + 1) + ". " + file)
-
-    ttk.Button(frm, text="Apply", command=edit_all_files).grid(row=2, column=2)
-    ttk.Button(frm, text="Quit", command=root.destroy).grid(column=3, row=2)
-    root.mainloop()
+def validate(value, isInt):
+    if value != "":
+        try:
+            if isInt:
+                return int(value)
+            else:
+                return float(value)
+        except Exception as e:
+            raise e
+    return None
 
 
 def reformat_slides_ui(root, files):
     frm = ttk.Frame(root, padding=10)
     frm.grid()
-    width = DoubleVar()
-    height = DoubleVar()
+    width = StringVar()
+    height = StringVar()
     options = ["Custom", "Standard(4:3)", "Widescreen(16:9)"]
     aspect_ratio = StringVar()
     aspect_ratio.set(options[0])
@@ -149,20 +142,20 @@ def reformat_slides_ui(root, files):
         frm, aspect_ratio, aspect_ratio.get(), *options, command=on_select
     ).grid(row=0, column=1)
     ttk.Label(frm, text="New width:").grid(row=1, column=0)
-    ttk.Entry(frm, textvariable=width, width=5).grid(row=1, column=1)
+    ttk.Entry(frm, textvariable=width, width=6).grid(row=1, column=1)
     ttk.Label(frm, text="Cm").grid(row=1, column=1, sticky=E)
     ttk.Label(frm, text="New height:").grid(row=1, column=2)
-    ttk.Entry(frm, textvariable=height, width=5).grid(row=1, column=3)
+    ttk.Entry(frm, textvariable=height, width=6).grid(row=1, column=3, padx=30)
     ttk.Label(frm, text="Cm").grid(row=1, column=3, sticky=E)
 
     ttk.Label(frm, text="Arabic Font Size Increase:").grid(row=2, column=0)
-    font_size_increase = IntVar()
-    ttk.Entry(frm, textvariable=font_size_increase, width=4).grid(row=2, column=1)
+    font_size_increase = StringVar()
+    ttk.Entry(frm, textvariable=font_size_increase, width=6).grid(row=2, column=1)
     ttk.Label(frm, text="Pt").grid(row=2, column=1, sticky=E)
 
     ttk.Label(frm, text="Coptic Font Size Increase:").grid(row=2, column=2)
-    copt_font_size_increase = IntVar()
-    ttk.Entry(frm, textvariable=copt_font_size_increase, width=4).grid(row=2, column=3)
+    copt_font_size_increase = StringVar()
+    ttk.Entry(frm, textvariable=copt_font_size_increase, width=6).grid(row=2, column=3)
     ttk.Label(frm, text="Pt").grid(row=2, column=3, sticky=E)
 
     exclude_outlined = BooleanVar()
@@ -170,91 +163,95 @@ def reformat_slides_ui(root, files):
         row=3, column=0
     )
 
-    ttk.Label(frm, text="Table Line Position:").grid(row=4, column=0)
-    table_position = DoubleVar()
-    ttk.Entry(frm, textvariable=table_position, width=4).grid(row=4, column=1)
-    ttk.Label(frm, text="Cm").grid(row=4, column=1, sticky=E)
-    exclude_first_slide = BooleanVar()
-
     class Margin:
         def __init__(self):
-            self.left = DoubleVar()
-            self.top = DoubleVar()
-            self.right = DoubleVar()
-            self.bottom = DoubleVar()
+            self.left = StringVar()
+            self.top = StringVar()
+            self.right = StringVar()
+            self.bottom = StringVar()
 
-    ttk.Label(frm, text="Shape Margin:").grid(row=5, column=0)
+        def validate(self):
+            try:
+                validated = Margin()
+                validated.left = validate(self.left.get(), False)
+                validated.top = validate(self.top.get(), False)
+                validated.right = validate(self.right.get(), False)
+                validated.bottom = validate(self.bottom.get(), False)
+                return validated
+            except Exception as e:
+                raise e
+
+        def UI(self, frm, sRow, title):
+            ttk.Label(frm, text=title).grid(row=sRow, column=0, rowspan=2, pady=20)
+            ttk.Label(frm, text="Left").grid(row=sRow, column=1, sticky=W)
+            ttk.Entry(frm, textvariable=self.left, width=6).grid(
+                row=sRow, column=1, padx=50
+            )
+            ttk.Label(frm, text="Cm").grid(row=sRow, column=1, sticky=E)
+            ttk.Label(frm, text="Top").grid(row=sRow, column=2, sticky=W)
+            ttk.Entry(frm, textvariable=self.top, width=6).grid(
+                row=sRow, column=2, padx=50
+            )
+            ttk.Label(frm, text="Cm").grid(row=sRow, column=2, sticky=E)
+            ttk.Label(frm, text="Bottom").grid(row=sRow + 1, column=1, sticky=W)
+            ttk.Entry(frm, textvariable=self.bottom, width=6).grid(
+                row=sRow + 1, column=1, padx=50
+            )
+            ttk.Label(frm, text="Cm").grid(row=sRow + 1, column=1, sticky=E)
+            ttk.Label(frm, text="Right").grid(row=sRow + 1, column=2, sticky=W)
+            ttk.Entry(frm, textvariable=self.right, width=6).grid(
+                row=sRow + 1, column=2, padx=50
+            )
+            ttk.Label(frm, text="Cm").grid(row=sRow + 1, column=2, sticky=E)
+
     shape_margin = Margin()
+    shape_margin.UI(frm, 4, "Shape Margin:")
 
-    ttk.Label(frm, text="Left").grid(row=5, column=1, sticky=W)
-    ttk.Entry(frm, textvariable=shape_margin.left, width=4).grid(
-        row=5, column=1, padx=50
-    )
-    ttk.Label(frm, text="Cm").grid(row=5, column=1, sticky=E)
-    ttk.Label(frm, text="Top").grid(row=5, column=2, sticky=W)
-    ttk.Entry(frm, textvariable=shape_margin.top, width=4).grid(
-        row=5, column=2, padx=50
-    )
-    ttk.Label(frm, text="Cm").grid(row=5, column=2, sticky=E)
-    ttk.Label(frm, text="Bottom").grid(row=6, column=1, sticky=W)
-    ttk.Entry(frm, textvariable=shape_margin.bottom, width=4).grid(
-        row=6, column=1, padx=50
-    )
-    ttk.Label(frm, text="Cm").grid(row=6, column=1, sticky=E)
-    ttk.Label(frm, text="Right").grid(row=6, column=2, sticky=W)
-    ttk.Entry(frm, textvariable=shape_margin.right, width=4).grid(
-        row=6, column=2, padx=50
-    )
-    ttk.Label(frm, text="Cm").grid(row=6, column=2, sticky=E)
-
-    ttk.Label(frm, text="Table Margin:").grid(row=7, column=0)
     table_margin = Margin()
+    table_margin.UI(frm, 6, "Table Margin:")
 
-    ttk.Label(frm, text="Left").grid(row=7, column=1, sticky=W)
-    ttk.Entry(frm, textvariable=table_margin.left, width=4).grid(
-        row=7, column=1, padx=50
-    )
-    ttk.Label(frm, text="Cm").grid(row=7, column=1, sticky=E)
-    ttk.Label(frm, text="Top").grid(row=7, column=2, sticky=W)
-    ttk.Entry(frm, textvariable=table_margin.top, width=4).grid(
-        row=7, column=2, padx=50
-    )
-    ttk.Label(frm, text="Cm").grid(row=7, column=2, sticky=E)
-    ttk.Label(frm, text="Bottom").grid(row=8, column=1, sticky=W)
-    ttk.Entry(frm, textvariable=table_margin.bottom, width=4).grid(
-        row=8, column=1, padx=50
-    )
-    ttk.Label(frm, text="Cm").grid(row=8, column=1, sticky=E)
-    ttk.Label(frm, text="Right").grid(row=8, column=2, sticky=W)
-    ttk.Entry(frm, textvariable=table_margin.right, width=4).grid(
-        row=8, column=2, padx=50
-    )
-    ttk.Label(frm, text="Cm").grid(row=8, column=2, sticky=E)
+    ttk.Label(frm, text="Outline Width:").grid(row=8, column=0)
+    line_width = StringVar()
+    ttk.Entry(frm, textvariable=line_width, width=6).grid(row=8, column=1)
+    ttk.Label(frm, text="Pt").grid(row=8, column=1, sticky=E)
+
+    ttk.Label(frm, text="Table Line Position:").grid(row=9, column=0)
+    table_position = StringVar()
+    ttk.Entry(frm, textvariable=table_position, width=6).grid(row=9, column=1)
+    ttk.Label(frm, text="Cm").grid(row=9, column=1, sticky=E)
 
     exclude_first_slide = BooleanVar()
+    ttk.Checkbutton(frm, text="Exclude First Slide", variable=exclude_first_slide).grid(
+        row=10, column=0
+    )
 
     def edit_all_files():
-        editor = PythonPPTXManager(
-            Cm(width.get()),
-            Cm(height.get()),
-            font_size_increase.get(),
-            copt_font_size_increase.get(),
-            exclude_first_slide.get(),
-            exclude_outlined.get(),
-            shape_margin,
-            table_margin,
-        )
-        for i, file in enumerate(files.get()):
-            editor.edit_ppt(file)
-            aspose_manager.move_table_to_position(file, table_position.get())
-            aspose_manager.remove_water_mark(file)
-            print(str(i + 1) + ". " + file)
+        try:
+            editor = PythonPPTXManager(
+                validate(width.get(), False),
+                validate(height.get(), False),
+                validate(font_size_increase.get(), True),
+                validate(copt_font_size_increase.get(), True),
+                exclude_first_slide.get(),
+                exclude_outlined.get(),
+                shape_margin.validate(),
+                table_margin.validate(),
+                validate(line_width.get(), True),
+            )
 
-    ttk.Checkbutton(frm, text="Exclude First Slide", variable=exclude_first_slide).grid(
-        row=9, column=0
-    )
-    ttk.Button(frm, text="Apply", command=edit_all_files).grid(row=10, column=2)
-    ttk.Button(frm, text="Quit", command=root.destroy).grid(row=10, column=3)
+            for i, file in enumerate(files.get()):
+                editor.edit_ppt(file)
+                tp = validate(table_position.get(), False)
+                if tp is not None:
+                    aspose_manager.move_table_to_position(file, tp)
+                    aspose_manager.remove_water_mark(file)
+                print(str(i + 1) + ". " + file)
+
+        except Exception as e:
+            messagebox.showerror("invalid input", e)
+
+    ttk.Button(frm, text="Apply", command=edit_all_files).grid(row=11, column=3)
+    ttk.Button(frm, text="Quit", command=root.destroy).grid(row=11, column=4)
     root.mainloop()
 
 
@@ -314,13 +311,6 @@ def GUI():
         window.resizable(False, False)
         replace_text_ui(window, files)
 
-    def open_format_textbox_ui():
-        window = Toplevel(root)
-        window.grab_set()
-        window.title("Format Text Boxes")
-        window.resizable(False, False)
-        format_textbox_ui(window, files)
-
     ttk.Button(
         frm, text="Reformat Slides", command=open_reformat_slides_ui, width=64
     ).grid(row=1, columnspan=4)
@@ -333,9 +323,6 @@ def GUI():
     ttk.Button(frm, text="Replace Text", command=open_replace_text_ui, width=64).grid(
         row=4, columnspan=4
     )
-    ttk.Button(
-        frm, text="Format Text Boxes", command=open_format_textbox_ui, width=64
-    ).grid(row=5, columnspan=4)
     ttk.Button(frm, text="Quit", command=root.destroy, width=64).grid(
         row=6, columnspan=4
     )
