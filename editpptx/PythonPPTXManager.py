@@ -144,25 +144,22 @@ class PythonPPTXManager:
                 self.set_line_width(shape)
 
     def edit_ppt(self, file):
-        try:
-            ppt = Presentation(file)
-            if self.new_width is not None:
-                self.old_width = ppt.slide_width
-                ppt.slide_width = self.new_width
-            if self.new_height is not None:
-                self.old_height = ppt.slide_height
-                ppt.slide_height = self.new_height
+        ppt = Presentation(file)
+        if self.new_width is not None:
+            self.old_width = ppt.slide_width
+            ppt.slide_width = self.new_width
+        if self.new_height is not None:
+            self.old_height = ppt.slide_height
+            ppt.slide_height = self.new_height
 
-            self.edit_slide(ppt.slide_master)
-            for slide_layout in ppt.slide_master.slide_layouts:
-                self.edit_slide(slide_layout)
+        self.edit_slide(ppt.slide_master)
+        for slide_layout in ppt.slide_master.slide_layouts:
+            self.edit_slide(slide_layout)
 
-            for idx, slide in enumerate(ppt.slides):
-                self.edit_slide(slide, exclude=(self.exclude_first_slide and idx == 0))
+        for idx, slide in enumerate(ppt.slides):
+            self.edit_slide(slide, exclude=(self.exclude_first_slide and idx == 0))
 
-            ppt.save(file)
-        except Exception as e:
-            print(file, "is invalid", e)
+        ppt.save(file)
 
     def is_arabic(self, text):
         pattern = re.compile(".*[\\u0600-\\u06FF]")

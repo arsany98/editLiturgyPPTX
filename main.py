@@ -22,6 +22,56 @@ async def get_pptx_files(dir_path):
 aspose_manager = AsposeManager()
 
 
+def validate(value, isInt):
+    if value != "":
+        try:
+            if isInt:
+                return int(value)
+            else:
+                return float(value)
+        except Exception as e:
+            raise e
+    return None
+
+
+def show_progress_bar_ui(root, title, progress, status):
+    window = Toplevel(root)
+    window.grab_set()
+    window.title(title)
+    window.resizable(False, False)
+    progress_frm = ttk.Frame(window, padding=10)
+    progress_frm.grid()
+    ttk.Label(window, textvariable=status).grid(row=0, column=0, sticky=W)
+    ttk.Progressbar(window, variable=progress, length=600, mode="determinate").grid(
+        row=1, column=0
+    )
+    return window
+
+
+def edit_all_files(root, files, edit_file, **kwargs):
+    status = StringVar()
+    progress = IntVar()
+    window = show_progress_bar_ui(root, "Convert Fonts", progress, status)
+    log = []
+    success_files = 0
+    for i, file in enumerate(files.get()):
+        try:
+            edit_file(file, **kwargs)
+            success_files += 1
+            status.set(str(i + 1) + ". " + file)
+            progress.set((i + 1) / len(files.get()) * 100)
+            window.update_idletasks()
+        except Exception as e:
+            log.append(f"{file} {e}\n")
+    window.destroy()
+    root.grab_set()
+
+    messagebox.showinfo(
+        "Log",
+        f"Applied to {success_files} files\n{len(log)} files failed\n" + "".join(log),
+    )
+
+
 def convert_fonts_ui(root, files):
     frm = ttk.Frame(root, padding=10)
     frm.grid()
@@ -44,15 +94,16 @@ def convert_fonts_ui(root, files):
     ttk.Label(frm, text="To:").grid(row=0, column=2)
     ttk.OptionMenu(frm, dest, None, *options).grid(row=0, column=3)
 
-    def edit_all_files():
-        for i, file in enumerate(files.get()):
-            font_converter = FontConverter()
-            font_converter.convert_all_text(file, src.get(), dest.get())
-            font_converter.change_font(file, src.get(), dest.get())
-            aspose_manager.remove_water_mark(file)
-            print(str(i + 1) + ". " + file)
+    def edit_file(file):
+        font_converter = FontConverter()
+        font_converter.convert_all_text(file, src.get(), dest.get())
+        font_converter.change_font(file, src.get(), dest.get())
+        aspose_manager.remove_water_mark(file)
 
-    ttk.Button(frm, text="Apply", command=edit_all_files).grid(row=2, column=2)
+    def apply_command():
+        edit_all_files(root, files, edit_file)
+
+    ttk.Button(frm, text="Apply", command=apply_command).grid(row=2, column=2)
     ttk.Button(frm, text="Quit", command=root.destroy).grid(column=3, row=2)
     root.mainloop()
 
@@ -75,14 +126,15 @@ def embedded_font_ui(root, files):
     font_dir_label = StringVar(value="No directory chosen.")
     ttk.Label(frm, textvariable=font_dir_label).grid(row=1, column=3)
 
-    def edit_all_files():
-        for i, file in enumerate(files.get()):
-            if font_dir.get() != "":
-                aspose_manager.embed_fonts(file, font_dir.get())
-            aspose_manager.remove_water_mark(file)
-            print(str(i + 1) + ". " + file)
+    def edit_file(file):
+        if font_dir.get() != "":
+            aspose_manager.embed_fonts(file, font_dir.get())
+        aspose_manager.remove_water_mark(file)
 
-    ttk.Button(frm, text="Apply", command=edit_all_files).grid(row=3, column=2)
+    def apply_command():
+        edit_all_files(root, files, edit_file)
+
+    ttk.Button(frm, text="Apply", command=apply_command).grid(row=3, column=2)
     ttk.Button(frm, text="Quit", command=root.destroy).grid(row=3, column=3)
     root.mainloop()
 
@@ -97,27 +149,16 @@ def replace_text_ui(root, files):
     ttk.Label(frm, text="Replace:").grid(row=0, column=2)
     ttk.Entry(frm, textvariable=replace).grid(row=0, column=3)
 
-    def edit_all_files():
-        for i, file in enumerate(files.get()):
-            replacer = TextReplacer()
-            replacer.edit_ppt(file, find.get(), replace.get())
-            print(str(i + 1) + ". " + file)
+    def edit_file(file):
+        replacer = TextReplacer()
+        replacer.edit_ppt(file, find.get(), replace.get())
 
-    ttk.Button(frm, text="Apply", command=edit_all_files).grid(row=2, column=2)
+    def apply_command():
+        edit_all_files(root, files, edit_file)
+
+    ttk.Button(frm, text="Apply", command=apply_command).grid(row=2, column=2)
     ttk.Button(frm, text="Quit", command=root.destroy).grid(column=3, row=2)
     root.mainloop()
-
-
-def validate(value, isInt):
-    if value != "":
-        try:
-            if isInt:
-                return int(value)
-            else:
-                return float(value)
-        except Exception as e:
-            raise e
-    return None
 
 
 def reformat_slides_ui(root, files):
@@ -225,7 +266,13 @@ def reformat_slides_ui(root, files):
         row=10, column=0
     )
 
-    def edit_all_files():
+    def edit_file(file, editor, tp):
+        editor.edit_ppt(file)
+        if tp is not None:
+            aspose_manager.move_table_to_position(file, tp)
+            aspose_manager.remove_water_mark(file)
+
+    def apply_command():
         try:
             editor = PythonPPTXManager(
                 validate(width.get(), False),
@@ -238,19 +285,12 @@ def reformat_slides_ui(root, files):
                 table_margin.validate(),
                 validate(line_width.get(), True),
             )
-
-            for i, file in enumerate(files.get()):
-                editor.edit_ppt(file)
-                tp = validate(table_position.get(), False)
-                if tp is not None:
-                    aspose_manager.move_table_to_position(file, tp)
-                    aspose_manager.remove_water_mark(file)
-                print(str(i + 1) + ". " + file)
-
+            tp = validate(table_position.get(), False)
+            edit_all_files(root, files, edit_file, editor=editor, tp=tp)
         except Exception as e:
-            messagebox.showerror("invalid input", e)
+            messagebox.showerror("Invalid Input", e)
 
-    ttk.Button(frm, text="Apply", command=edit_all_files).grid(row=11, column=3)
+    ttk.Button(frm, text="Apply", command=apply_command).grid(row=11, column=3)
     ttk.Button(frm, text="Quit", command=root.destroy).grid(row=11, column=4)
     root.mainloop()
 
