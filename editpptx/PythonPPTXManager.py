@@ -193,3 +193,8 @@ class PythonPPTXManager:
             and shape.line.fill.type == MSO_FILL_TYPE.SOLID
         ):
             shape.line.width = self.line_width
+
+    def get_slides_count(file):
+        ppt = Presentation(file)
+
+        return len(ppt.slides)

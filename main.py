@@ -306,6 +306,7 @@ def GUI():
         if path is not None and path != "":
             files.set(asyncio.run(get_pptx_files(path)))
             dir_label.set(f"Found {len(files.get())} pptx files")
+            count_slides()
 
     def choose_files():
         paths = filedialog.askopenfilenames(
@@ -314,6 +315,18 @@ def GUI():
         if paths is not None and paths != []:
             files.set(paths)
             dir_label.set(f"Found {len(files.get())} pptx files")
+            count_slides()
+
+    def count_slides():
+        slides_count.set(f"Slides Count: Loading...")
+        root.update_idletasks()
+        co = 0
+        for file in files.get():
+            try:
+                co += PythonPPTXManager.get_slides_count(file)
+            except Exception as e:
+                print(e)
+        slides_count.set(f"Slides Count: {co}")
 
     frm = ttk.Frame(root, padding=10)
     frm.grid()
@@ -321,7 +334,9 @@ def GUI():
     ttk.Button(frm, text="Choose Dir...", command=choose_dir).grid(row=0, column=1)
     ttk.Button(frm, text="Choose Files...", command=choose_files).grid(row=0, column=2)
     dir_label = StringVar(value="No directory chosen.")
+    slides_count = StringVar(value="Slides Count: 0")
     ttk.Label(frm, textvariable=dir_label).grid(row=0, column=3)
+    ttk.Label(frm, textvariable=slides_count).grid(row=1, columnspan=4)
 
     def open_reformat_slides_ui():
         window = Toplevel(root)
@@ -353,15 +368,15 @@ def GUI():
 
     ttk.Button(
         frm, text="Reformat Slides", command=open_reformat_slides_ui, width=64
-    ).grid(row=1, columnspan=4)
+    ).grid(row=2, columnspan=4)
     ttk.Button(
         frm, text="Embedded Fonts", command=open_embedded_fonts_ui, width=64
-    ).grid(row=2, columnspan=4)
+    ).grid(row=3, columnspan=4)
     ttk.Button(frm, text="Convert Fonts", command=open_convert_fonts_ui, width=64).grid(
-        row=3, columnspan=4
+        row=4, columnspan=4
     )
     ttk.Button(frm, text="Replace Text", command=open_replace_text_ui, width=64).grid(
-        row=4, columnspan=4
+        row=5, columnspan=4
     )
     ttk.Button(frm, text="Quit", command=root.destroy, width=64).grid(
         row=6, columnspan=4
