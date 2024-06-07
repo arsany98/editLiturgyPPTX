@@ -122,17 +122,14 @@ class PythonPPTXManager:
                 self.change_shape_width(shape, exclude)
             if self.new_height is not None:
                 self.change_shape_height(shape, exclude)
-            if not exclude:
-                if (
-                    self.exclude_outlined
-                    and (
-                        shape.shape_type == MSO_SHAPE_TYPE.TEXT_BOX
-                        or shape.shape_type == MSO_SHAPE_TYPE.AUTO_SHAPE
-                    )
-                    and shape.line.fill.type == MSO_FILL_TYPE.SOLID
-                ):
-                    continue
-
+            if not (
+                self.exclude_outlined
+                and (
+                    shape.shape_type == MSO_SHAPE_TYPE.TEXT_BOX
+                    or shape.shape_type == MSO_SHAPE_TYPE.AUTO_SHAPE
+                )
+                and shape.line.fill.type == MSO_FILL_TYPE.SOLID
+            ):
                 if self.font_size_increase is not None and self.font_size_increase != 0:
                     self.increase_arabic_shape_font_size(shape)
                 if (
@@ -140,8 +137,8 @@ class PythonPPTXManager:
                     and self.copt_font_size_increase != 0
                 ):
                     self.increase_coptic_shape_font_size(shape)
-                self.set_shape_margin(shape)
-                self.set_line_width(shape)
+            self.set_shape_margin(shape)
+            self.set_line_width(shape)
 
     def edit_ppt(self, file):
         ppt = Presentation(file)

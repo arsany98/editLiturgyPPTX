@@ -169,7 +169,7 @@ def reformat_slides_ui(root, files):
     options = ["Custom", "Standard(4:3)", "Widescreen(16:9)"]
     aspect_ratio = StringVar()
     aspect_ratio.set(options[0])
-    ttk.Label(frm, text="Aspect Ratio:").grid(row=0, column=0)
+    ttk.Label(frm, text="Aspect Ratio:").grid(row=0, column=0, sticky=W)
 
     def on_select(selected):
         if selected == options[1]:
@@ -182,26 +182,26 @@ def reformat_slides_ui(root, files):
     ttk.OptionMenu(
         frm, aspect_ratio, aspect_ratio.get(), *options, command=on_select
     ).grid(row=0, column=1)
-    ttk.Label(frm, text="New width:").grid(row=1, column=0)
+    ttk.Label(frm, text="New width:").grid(row=1, column=0, sticky=W)
     ttk.Entry(frm, textvariable=width, width=6).grid(row=1, column=1)
-    ttk.Label(frm, text="Cm").grid(row=1, column=1, sticky=E)
-    ttk.Label(frm, text="New height:").grid(row=1, column=2)
-    ttk.Entry(frm, textvariable=height, width=6).grid(row=1, column=3, padx=30)
-    ttk.Label(frm, text="Cm").grid(row=1, column=3, sticky=E)
+    ttk.Label(frm, text="Cm").grid(row=1, column=1, sticky=E, padx=20)
+    ttk.Label(frm, text="New height:").grid(row=1, column=2, sticky=W)
+    ttk.Entry(frm, textvariable=height, width=6).grid(row=1, column=3, padx=50)
+    ttk.Label(frm, text="Cm").grid(row=1, column=3, sticky=E, padx=20)
 
-    ttk.Label(frm, text="Arabic Font Size Increase:").grid(row=2, column=0)
+    ttk.Label(frm, text="Arabic Font Size Increase:").grid(row=2, column=0, sticky=W)
     font_size_increase = StringVar()
     ttk.Entry(frm, textvariable=font_size_increase, width=6).grid(row=2, column=1)
-    ttk.Label(frm, text="Pt").grid(row=2, column=1, sticky=E)
+    ttk.Label(frm, text="Pt").grid(row=2, column=1, sticky=E, padx=20)
 
-    ttk.Label(frm, text="Coptic Font Size Increase:").grid(row=2, column=2)
+    ttk.Label(frm, text="Coptic Font Size Increase:").grid(row=2, column=2, sticky=W)
     copt_font_size_increase = StringVar()
     ttk.Entry(frm, textvariable=copt_font_size_increase, width=6).grid(row=2, column=3)
-    ttk.Label(frm, text="Pt").grid(row=2, column=3, sticky=E)
+    ttk.Label(frm, text="Pt").grid(row=2, column=3, sticky=E, padx=20)
 
     exclude_outlined = BooleanVar()
     ttk.Checkbutton(frm, text="Exclude Outlined", variable=exclude_outlined).grid(
-        row=3, column=0
+        row=3, column=0, sticky=W
     )
 
     class Margin:
@@ -223,27 +223,29 @@ def reformat_slides_ui(root, files):
                 raise e
 
         def UI(self, frm, sRow, title):
-            ttk.Label(frm, text=title).grid(row=sRow, column=0, rowspan=2, pady=20)
+            ttk.Label(frm, text=title).grid(
+                row=sRow, column=0, rowspan=2, pady=20, sticky=W
+            )
             ttk.Label(frm, text="Left").grid(row=sRow, column=1, sticky=W)
             ttk.Entry(frm, textvariable=self.left, width=6).grid(
                 row=sRow, column=1, padx=50
             )
-            ttk.Label(frm, text="Cm").grid(row=sRow, column=1, sticky=E)
+            ttk.Label(frm, text="Cm").grid(row=sRow, column=1, sticky=E, padx=20)
             ttk.Label(frm, text="Top").grid(row=sRow, column=2, sticky=W)
             ttk.Entry(frm, textvariable=self.top, width=6).grid(
                 row=sRow, column=2, padx=50
             )
-            ttk.Label(frm, text="Cm").grid(row=sRow, column=2, sticky=E)
+            ttk.Label(frm, text="Cm").grid(row=sRow, column=2, sticky=E, padx=20)
             ttk.Label(frm, text="Bottom").grid(row=sRow + 1, column=1, sticky=W)
             ttk.Entry(frm, textvariable=self.bottom, width=6).grid(
                 row=sRow + 1, column=1, padx=50
             )
-            ttk.Label(frm, text="Cm").grid(row=sRow + 1, column=1, sticky=E)
+            ttk.Label(frm, text="Cm").grid(row=sRow + 1, column=1, sticky=E, padx=20)
             ttk.Label(frm, text="Right").grid(row=sRow + 1, column=2, sticky=W)
             ttk.Entry(frm, textvariable=self.right, width=6).grid(
                 row=sRow + 1, column=2, padx=50
             )
-            ttk.Label(frm, text="Cm").grid(row=sRow + 1, column=2, sticky=E)
+            ttk.Label(frm, text="Cm").grid(row=sRow + 1, column=2, sticky=E, padx=20)
 
     shape_margin = Margin()
     shape_margin.UI(frm, 4, "Shape Margin:")
@@ -251,47 +253,82 @@ def reformat_slides_ui(root, files):
     table_margin = Margin()
     table_margin.UI(frm, 6, "Table Margin:")
 
-    ttk.Label(frm, text="Outline Width:").grid(row=8, column=0)
+    ttk.Label(frm, text="Outline Width:").grid(row=8, column=0, sticky=W)
     line_width = StringVar()
     ttk.Entry(frm, textvariable=line_width, width=6).grid(row=8, column=1)
-    ttk.Label(frm, text="Pt").grid(row=8, column=1, sticky=E)
+    ttk.Label(frm, text="Pt").grid(row=8, column=1, sticky=E, padx=20)
 
-    ttk.Label(frm, text="Table Line Position:").grid(row=9, column=0)
+    split_slides = BooleanVar()
+    ttk.Checkbutton(
+        frm, text="Split 2 Table Slides into 2 Slides", variable=split_slides
+    ).grid(row=9, column=0, sticky=W)
+
+    center_tables = BooleanVar()
+
+    tp_label = ttk.Label(frm, text="Table Line Position:")
+    tp_label.grid(row=10, column=0, sticky=W)
     table_position = StringVar()
-    ttk.Entry(frm, textvariable=table_position, width=6).grid(row=9, column=1)
-    ttk.Label(frm, text="Cm").grid(row=9, column=1, sticky=E)
+    tp_entry = ttk.Entry(frm, textvariable=table_position, width=6)
+    tp_entry.grid(row=10, column=1)
+    tp_unit = ttk.Label(frm, text="Cm")
+    tp_unit.grid(row=10, column=1, sticky=E, padx=20)
+
+    def on_click():
+        if center_tables.get():
+            tp_label.config(state=DISABLED)
+            tp_entry.config(state=DISABLED)
+            tp_unit.config(state=DISABLED)
+        else:
+            tp_label.config(state=NORMAL)
+            tp_entry.config(state=NORMAL)
+            tp_unit.config(state=NORMAL)
+
+    ttk.Checkbutton(
+        frm, text="Center Tables", variable=center_tables, command=on_click
+    ).grid(row=10, column=2, sticky=W)
 
     exclude_first_slide = BooleanVar()
     ttk.Checkbutton(frm, text="Exclude First Slide", variable=exclude_first_slide).grid(
-        row=10, column=0
+        row=11, column=0, sticky=W
     )
 
-    def edit_file(file, editor, tp):
+    def edit_file(file):
+        editor = PythonPPTXManager(
+            validate(width.get(), False),
+            validate(height.get(), False),
+            validate(font_size_increase.get(), True),
+            validate(copt_font_size_increase.get(), True),
+            exclude_first_slide.get(),
+            exclude_outlined.get(),
+            shape_margin.validate(),
+            table_margin.validate(),
+            validate(line_width.get(), False),
+        )
         editor.edit_ppt(file)
-        if tp is not None:
-            aspose_manager.move_table_to_position(file, tp)
-            aspose_manager.remove_water_mark(file)
+        aspose_manager.edit_ppt(
+            file,
+            validate(table_position.get(), False),
+            split_slides.get(),
+            center_tables.get(),
+        )
 
     def apply_command():
         try:
-            editor = PythonPPTXManager(
-                validate(width.get(), False),
-                validate(height.get(), False),
-                validate(font_size_increase.get(), True),
-                validate(copt_font_size_increase.get(), True),
-                exclude_first_slide.get(),
-                exclude_outlined.get(),
-                shape_margin.validate(),
-                table_margin.validate(),
-                validate(line_width.get(), True),
-            )
-            tp = validate(table_position.get(), False)
-            edit_all_files(root, files, edit_file, editor=editor, tp=tp)
+            validate(width.get(), False)
+            validate(height.get(), False)
+            validate(font_size_increase.get(), True)
+            validate(copt_font_size_increase.get(), True)
+            shape_margin.validate()
+            table_margin.validate()
+            validate(line_width.get(), False)
+            validate(table_position.get(), False)
+
+            edit_all_files(root, files, edit_file)
         except Exception as e:
             messagebox.showerror("Invalid Input", e)
 
-    ttk.Button(frm, text="Apply", command=apply_command).grid(row=11, column=3)
-    ttk.Button(frm, text="Quit", command=root.destroy).grid(row=11, column=4)
+    ttk.Button(frm, text="Apply", command=apply_command).grid(row=12, column=3)
+    ttk.Button(frm, text="Quit", command=root.destroy).grid(row=12, column=4)
     root.mainloop()
 
 
