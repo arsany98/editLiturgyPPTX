@@ -4,6 +4,7 @@ from aspose.slides import (
     FontData,
     Table,
     util,
+    AutoShape,
     ShapesAlignmentType,
 )
 from aspose.slides import Presentation as slidesPresentation
@@ -122,8 +123,29 @@ class AsposeManager:
                             ShapesAlignmentType.ALIGN_MIDDLE, True, slide, [idx]
                         )
 
-    def edit_ppt(self, file, table_position, split_slides, center_tables):
-        if not table_position and not split_slides and not center_tables:
+    def duplicate_textbox_slide(self, presentation):
+        slides_numbers = []
+        for slide in presentation.slides:
+            textboxes = 0
+            for shape in slide.shapes:
+                if type(shape) == AutoShape:
+                    textboxes += 1
+            if textboxes == 1:
+                slides_numbers.append(slide.slide_number)
+        added_slides = 0
+        for i in slides_numbers:
+            presentation.slides.insert_clone(
+                i + added_slides, presentation.slides[i + added_slides - 1]
+            )
+            added_slides += 1
+
+    def edit_ppt(self, file, table_position, split_slides, center_tables, duplicate):
+        if (
+            not table_position
+            and not split_slides
+            and not center_tables
+            and not duplicate
+        ):
             return
         presentation = slidesPresentation(file)
         if split_slides:
@@ -132,5 +154,7 @@ class AsposeManager:
             self.center_tables(presentation)
         elif table_position is not None:
             self.move_table_to_position(presentation, table_position)
+        if duplicate:
+            self.duplicate_textbox_slide(presentation)
         presentation.save(file, export.SaveFormat.PPTX)
         self.remove_water_mark(file)

@@ -204,6 +204,11 @@ def reformat_slides_ui(root, files):
         row=3, column=0, sticky=W
     )
 
+    exclude_first_slide = BooleanVar()
+    ttk.Checkbutton(frm, text="Exclude First Slide", variable=exclude_first_slide).grid(
+        row=4, column=0, sticky=W
+    )
+
     class Margin:
         def __init__(self):
             self.left = StringVar()
@@ -248,30 +253,30 @@ def reformat_slides_ui(root, files):
             ttk.Label(frm, text="Cm").grid(row=sRow + 1, column=2, sticky=E, padx=20)
 
     shape_margin = Margin()
-    shape_margin.UI(frm, 4, "Shape Margin:")
+    shape_margin.UI(frm, 5, "Shape Margin:")
 
     table_margin = Margin()
-    table_margin.UI(frm, 6, "Table Margin:")
+    table_margin.UI(frm, 7, "Table Margin:")
 
-    ttk.Label(frm, text="Outline Width:").grid(row=8, column=0, sticky=W)
+    ttk.Label(frm, text="Outline Width:").grid(row=9, column=0, sticky=W)
     line_width = StringVar()
-    ttk.Entry(frm, textvariable=line_width, width=6).grid(row=8, column=1)
-    ttk.Label(frm, text="Pt").grid(row=8, column=1, sticky=E, padx=20)
+    ttk.Entry(frm, textvariable=line_width, width=6).grid(row=9, column=1)
+    ttk.Label(frm, text="Pt").grid(row=9, column=1, sticky=E, padx=20)
 
     split_slides = BooleanVar()
     ttk.Checkbutton(
-        frm, text="Split 2 Table Slides into 2 Slides", variable=split_slides
-    ).grid(row=9, column=0, sticky=W)
+        frm, text="Split 2 Table Slide into 2 Slides", variable=split_slides
+    ).grid(row=10, column=0, sticky=W)
 
     center_tables = BooleanVar()
 
     tp_label = ttk.Label(frm, text="Table Line Position:")
-    tp_label.grid(row=10, column=0, sticky=W)
+    tp_label.grid(row=11, column=0, sticky=W)
     table_position = StringVar()
     tp_entry = ttk.Entry(frm, textvariable=table_position, width=6)
-    tp_entry.grid(row=10, column=1)
+    tp_entry.grid(row=11, column=1)
     tp_unit = ttk.Label(frm, text="Cm")
-    tp_unit.grid(row=10, column=1, sticky=E, padx=20)
+    tp_unit.grid(row=11, column=1, sticky=E, padx=20)
 
     def on_click():
         if center_tables.get():
@@ -285,12 +290,17 @@ def reformat_slides_ui(root, files):
 
     ttk.Checkbutton(
         frm, text="Center Tables", variable=center_tables, command=on_click
-    ).grid(row=10, column=2, sticky=W)
+    ).grid(row=11, column=2, sticky=W)
 
-    exclude_first_slide = BooleanVar()
-    ttk.Checkbutton(frm, text="Exclude First Slide", variable=exclude_first_slide).grid(
-        row=11, column=0, sticky=W
-    )
+    split_textboxes_slides = BooleanVar()
+    ttk.Checkbutton(
+        frm, text="Split Textbox Slide into 2 Slides", variable=split_textboxes_slides
+    ).grid(row=12, column=0, sticky=W)
+
+    ttk.Label(frm, text="Textbox Position:").grid(row=13, column=0, sticky=W)
+    textbox_position = StringVar()
+    ttk.Entry(frm, textvariable=textbox_position, width=6).grid(row=13, column=1)
+    ttk.Label(frm, text="Cm").grid(row=13, column=1, sticky=E, padx=20)
 
     def edit_file(file):
         editor = PythonPPTXManager(
@@ -303,6 +313,7 @@ def reformat_slides_ui(root, files):
             shape_margin.validate(),
             table_margin.validate(),
             validate(line_width.get(), False),
+            validate(textbox_position.get(), False),
         )
         editor.edit_ppt(file)
         aspose_manager.edit_ppt(
@@ -310,7 +321,10 @@ def reformat_slides_ui(root, files):
             validate(table_position.get(), False),
             split_slides.get(),
             center_tables.get(),
+            split_textboxes_slides.get(),
         )
+        if split_textboxes_slides.get():
+            PythonPPTXManager.split_on_newline(file)
 
     def apply_command():
         try:
@@ -327,8 +341,8 @@ def reformat_slides_ui(root, files):
         except Exception as e:
             messagebox.showerror("Invalid Input", e)
 
-    ttk.Button(frm, text="Apply", command=apply_command).grid(row=12, column=3)
-    ttk.Button(frm, text="Quit", command=root.destroy).grid(row=12, column=4)
+    ttk.Button(frm, text="Apply", command=apply_command).grid(row=14, column=3)
+    ttk.Button(frm, text="Quit", command=root.destroy).grid(row=14, column=4)
     root.mainloop()
 
 

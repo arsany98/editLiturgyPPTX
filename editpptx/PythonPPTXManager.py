@@ -29,6 +29,7 @@ class PythonPPTXManager:
         shape_margin,
         table_margin,
         line_width,
+        textbox_position,
     ):
         self.new_width = CmOrNone(new_width)
         self.new_height = CmOrNone(new_height)
@@ -39,6 +40,7 @@ class PythonPPTXManager:
         self.exclude_outlined = exclude_outlined
         self.shape_margin = shape_margin
         self.table_margin = table_margin
+        self.textbox_position = CmOrNone(textbox_position)
 
     def change_shape_width(self, shape, exclude):
         ratio = self.new_width / self.old_width
@@ -122,7 +124,7 @@ class PythonPPTXManager:
                 self.change_shape_width(shape, exclude)
             if self.new_height is not None:
                 self.change_shape_height(shape, exclude)
-            if not (
+            if not exclude and not (
                 self.exclude_outlined
                 and (
                     shape.shape_type == MSO_SHAPE_TYPE.TEXT_BOX
@@ -155,6 +157,7 @@ class PythonPPTXManager:
 
         for idx, slide in enumerate(ppt.slides):
             self.edit_slide(slide, exclude=(self.exclude_first_slide and idx == 0))
+            self.move_textbox_to_position(slide)
 
         ppt.save(file)
 
@@ -195,3 +198,58 @@ class PythonPPTXManager:
         ppt = Presentation(file)
 
         return len(ppt.slides)
+
+    def apply_font(paragraph, font):
+        p = paragraph
+        p.font.size = font.size
+        p.font.color.rgb = font.color.rgb
+        p.font.bold = font.bold
+        p.font.name = font.name
+
+    def split_on_newline(file):
+        ppt = Presentation(file)
+        textboxes = []
+        for slide in ppt.slides:
+            for shape in slide.shapes:
+                if (
+                    shape.shape_type == MSO_SHAPE_TYPE.TEXT_BOX
+                    or shape.shape_type == MSO_SHAPE_TYPE.AUTO_SHAPE
+                ):
+                    textboxes.append(shape)
+                    break
+        font = None
+        for i in range(len(textboxes) - 1):
+            if textboxes[i].text_frame.text == textboxes[i + 1].text_frame.text:
+                if font is None:
+                    font = textboxes[i].text_frame.paragraphs[0].runs[0].font
+                t = textboxes[i].text_frame.text.split("\x0b\x0b")
+                textboxes[i].text_frame.clear()
+                textboxes[i].text_frame.paragraphs[0].text = t[0] + "\x0b"
+                PythonPPTXManager.apply_font(
+                    textboxes[i].text_frame.paragraphs[0], font
+                )
+                textboxes[i + 1].text_frame.clear()
+                textboxes[i + 1].text_frame.paragraphs[0].text = t[1]
+                PythonPPTXManager.apply_font(
+                    textboxes[i + 1].text_frame.paragraphs[0], font
+                )
+
+        ppt.save(file)
+
+    def move_textbox_to_position(self, slide):
+        if self.textbox_position is None:
+            return
+        textboxes = 0
+        for shape in slide.shapes:
+            if (
+                shape.shape_type == MSO_SHAPE_TYPE.TEXT_BOX
+                or shape.shape_type == MSO_SHAPE_TYPE.AUTO_SHAPE
+            ):
+                textboxes += 1
+        if textboxes == 1:
+            for shape in slide.shapes:
+                if (
+                    shape.shape_type == MSO_SHAPE_TYPE.TEXT_BOX
+                    or shape.shape_type == MSO_SHAPE_TYPE.AUTO_SHAPE
+                ):
+                    shape.top = self.textbox_position
