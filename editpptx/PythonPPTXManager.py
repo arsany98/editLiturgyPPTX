@@ -1,6 +1,6 @@
 from pptx.util import Cm, Emu, Pt
 from pptx.enum.shapes import MSO_SHAPE_TYPE
-from pptx.enum.dml import MSO_FILL_TYPE
+from pptx.enum.dml import MSO_FILL_TYPE, MSO_COLOR_TYPE
 from pptx import Presentation
 import re
 
@@ -202,7 +202,10 @@ class PythonPPTXManager:
     def apply_font(paragraph, font):
         p = paragraph
         p.font.size = font.size
-        p.font.color.rgb = font.color.rgb
+        if font.color.type == MSO_COLOR_TYPE.RGB:
+            p.font.color.rgb = font.color.rgb
+        elif font.color.type == MSO_COLOR_TYPE.SCHEME:
+            p.font.color.theme_color = font.color.theme_color
         p.font.bold = font.bold
         p.font.name = font.name
 
@@ -217,22 +220,27 @@ class PythonPPTXManager:
                 ):
                     textboxes.append(shape)
                     break
-        font = None
         for i in range(len(textboxes) - 1):
             if textboxes[i].text_frame.text == textboxes[i + 1].text_frame.text:
-                if font is None:
-                    font = textboxes[i].text_frame.paragraphs[0].runs[0].font
-                t = textboxes[i].text_frame.text.split("\x0b\x0b")
-                textboxes[i].text_frame.clear()
-                textboxes[i].text_frame.paragraphs[0].text = t[0] + "\x0b"
-                PythonPPTXManager.apply_font(
-                    textboxes[i].text_frame.paragraphs[0], font
+                font = textboxes[i].text_frame.paragraphs[0].runs[0].font
+                t = (
+                    textboxes[i]
+                    .text_frame.text.replace("\x0b\n", "\x0b\x0b")
+                    .split("\x0b\x0b")
                 )
-                textboxes[i + 1].text_frame.clear()
-                textboxes[i + 1].text_frame.paragraphs[0].text = t[1]
-                PythonPPTXManager.apply_font(
-                    textboxes[i + 1].text_frame.paragraphs[0], font
-                )
+                if len(t) >= 2:
+                    if t[0].strip() != "":
+                        textboxes[i].text_frame.clear()
+                        textboxes[i].text_frame.paragraphs[0].text = t[0] + "\x0b"
+                        PythonPPTXManager.apply_font(
+                            textboxes[i].text_frame.paragraphs[0], font
+                        )
+                    if t[1].strip() != "":
+                        textboxes[i + 1].text_frame.clear()
+                        textboxes[i + 1].text_frame.paragraphs[0].text = t[1]
+                        PythonPPTXManager.apply_font(
+                            textboxes[i + 1].text_frame.paragraphs[0], font
+                        )
 
         ppt.save(file)
 
