@@ -302,6 +302,11 @@ def reformat_slides_ui(root, files):
     ttk.Entry(frm, textvariable=textbox_position, width=6).grid(row=13, column=1)
     ttk.Label(frm, text="Cm").grid(row=13, column=1, sticky=E, padx=20)
 
+    extend_textbox_width = BooleanVar()
+    ttk.Checkbutton(
+        frm, text="Textbox Match slide width", variable=extend_textbox_width
+    ).grid(row=14, column=0, sticky=W)
+
     def edit_file(file):
         editor = PythonPPTXManager(
             validate(width.get(), False),
@@ -314,6 +319,7 @@ def reformat_slides_ui(root, files):
             table_margin.validate(),
             validate(line_width.get(), False),
             validate(textbox_position.get(), False),
+            extend_textbox_width.get(),
         )
         editor.edit_ppt(file)
         aspose_manager.edit_ppt(

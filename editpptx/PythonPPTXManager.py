@@ -30,6 +30,7 @@ class PythonPPTXManager:
         table_margin,
         line_width,
         textbox_position,
+        extend_textbox_width
     ):
         self.new_width = CmOrNone(new_width)
         self.new_height = CmOrNone(new_height)
@@ -41,6 +42,7 @@ class PythonPPTXManager:
         self.shape_margin = shape_margin
         self.table_margin = table_margin
         self.textbox_position = CmOrNone(textbox_position)
+        self.extend_textbox_width = extend_textbox_width
 
     def change_shape_width(self, shape, exclude):
         ratio = self.new_width / self.old_width
@@ -144,11 +146,11 @@ class PythonPPTXManager:
 
     def edit_ppt(self, file):
         ppt = Presentation(file)
+        self.old_width = ppt.slide_width
         if self.new_width is not None:
-            self.old_width = ppt.slide_width
             ppt.slide_width = self.new_width
+        self.old_height = ppt.slide_height
         if self.new_height is not None:
-            self.old_height = ppt.slide_height
             ppt.slide_height = self.new_height
 
         self.edit_slide(ppt.slide_master)
@@ -158,6 +160,7 @@ class PythonPPTXManager:
         for idx, slide in enumerate(ppt.slides):
             self.edit_slide(slide, exclude=(self.exclude_first_slide and idx == 0))
             self.move_textbox_to_position(slide)
+            self.extend_textbox_width_to_match_slide(slide)
 
         ppt.save(file)
 
@@ -261,3 +264,22 @@ class PythonPPTXManager:
                     or shape.shape_type == MSO_SHAPE_TYPE.AUTO_SHAPE
                 ):
                     shape.top = self.textbox_position
+
+    def extend_textbox_width_to_match_slide(self, slide):
+        if self.extend_textbox_width is None:
+            return
+        textboxes = 0
+        for shape in slide.shapes:
+            if (
+                shape.shape_type == MSO_SHAPE_TYPE.TEXT_BOX
+                or shape.shape_type == MSO_SHAPE_TYPE.AUTO_SHAPE
+            ):
+                textboxes += 1
+        if textboxes == 1:
+            for shape in slide.shapes:
+                if (
+                    shape.shape_type == MSO_SHAPE_TYPE.TEXT_BOX
+                    or shape.shape_type == MSO_SHAPE_TYPE.AUTO_SHAPE
+                ):
+                    shape.width = self.new_width if self.new_width else self.old_width
+                    shape.left = 0
