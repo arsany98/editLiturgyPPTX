@@ -312,6 +312,11 @@ def reformat_slides_ui(root, files):
         frm, text="Merge Rows", variable=merge_rows
     ).grid(row=15, column=0, sticky=W)
 
+    ttk.Label(frm, text="Outlined box position above:").grid(row=16, column=0, sticky=W)
+    outlined_box_position = StringVar()
+    ttk.Entry(frm, textvariable=outlined_box_position, width=6).grid(row=16, column=1)
+    ttk.Label(frm, text="Cm").grid(row=16, column=1, sticky=E, padx=20)
+
     def edit_file(file):
         editor = PythonPPTXManager(
             validate(width.get(), False),
@@ -325,7 +330,8 @@ def reformat_slides_ui(root, files):
             validate(line_width.get(), False),
             validate(textbox_position.get(), False),
             extend_textbox_width.get(),
-            merge_rows.get()
+            merge_rows.get(),
+            validate(outlined_box_position.get(), False),
         )
         editor.edit_ppt(file)
         aspose_manager.edit_ppt(
@@ -353,8 +359,8 @@ def reformat_slides_ui(root, files):
         except Exception as e:
             messagebox.showerror("Invalid Input", e)
 
-    ttk.Button(frm, text="Apply", command=apply_command).grid(row=16, column=3)
-    ttk.Button(frm, text="Quit", command=root.destroy).grid(row=16, column=4)
+    ttk.Button(frm, text="Apply", command=apply_command).grid(row=17, column=3)
+    ttk.Button(frm, text="Quit", command=root.destroy).grid(row=17, column=4)
     root.mainloop()
 
 

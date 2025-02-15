@@ -31,7 +31,8 @@ class PythonPPTXManager:
         line_width,
         textbox_position,
         extend_textbox_width,
-        merge_rows
+        merge_rows,
+        outlined_box_position
     ):
         self.new_width = CmOrNone(new_width)
         self.new_height = CmOrNone(new_height)
@@ -45,6 +46,7 @@ class PythonPPTXManager:
         self.textbox_position = CmOrNone(textbox_position)
         self.extend_textbox_width = extend_textbox_width
         self.merge_rows = merge_rows
+        self.outlined_box_position = CmOrNone(outlined_box_position)
 
     def change_shape_width(self, shape, exclude):
         ratio = self.new_width / self.old_width
@@ -164,6 +166,7 @@ class PythonPPTXManager:
             self.move_textbox_to_position(slide)
             self.extend_textbox_width_to_match_slide(slide)
             self.merge_table_rows(slide)
+            self.move_outlined_box_to_position(slide)
 
         ppt.save(file)
 
@@ -301,3 +304,12 @@ class PythonPPTXManager:
                     row.cells[0].merge(row.cells[last_cell_idx])
 
     
+    def move_outlined_box_to_position(self, slide):
+        if self.outlined_box_position is None:
+            return
+        for shape in slide.shapes:
+            if (
+                shape.shape_type == MSO_SHAPE_TYPE.TEXT_BOX
+                or shape.shape_type == MSO_SHAPE_TYPE.AUTO_SHAPE
+            ) and shape.line.fill.type == MSO_FILL_TYPE.SOLID:
+                shape.top = self.outlined_box_position - shape.height
