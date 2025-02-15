@@ -163,6 +163,8 @@ class PythonPPTXManager:
 
         for idx, slide in enumerate(ppt.slides):
             self.edit_slide(slide, exclude=(self.exclude_first_slide and idx == 0))
+            if self.exclude_first_slide and idx == 0:
+                continue
             self.move_textbox_to_position(slide)
             self.extend_textbox_width_to_match_slide(slide)
             self.merge_table_rows(slide)
