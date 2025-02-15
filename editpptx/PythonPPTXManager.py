@@ -30,7 +30,8 @@ class PythonPPTXManager:
         table_margin,
         line_width,
         textbox_position,
-        extend_textbox_width
+        extend_textbox_width,
+        merge_rows
     ):
         self.new_width = CmOrNone(new_width)
         self.new_height = CmOrNone(new_height)
@@ -43,6 +44,7 @@ class PythonPPTXManager:
         self.table_margin = table_margin
         self.textbox_position = CmOrNone(textbox_position)
         self.extend_textbox_width = extend_textbox_width
+        self.merge_rows = merge_rows
 
     def change_shape_width(self, shape, exclude):
         ratio = self.new_width / self.old_width
@@ -161,6 +163,7 @@ class PythonPPTXManager:
             self.edit_slide(slide, exclude=(self.exclude_first_slide and idx == 0))
             self.move_textbox_to_position(slide)
             self.extend_textbox_width_to_match_slide(slide)
+            self.merge_table_rows(slide)
 
         ppt.save(file)
 
@@ -266,7 +269,7 @@ class PythonPPTXManager:
                     shape.top = self.textbox_position
 
     def extend_textbox_width_to_match_slide(self, slide):
-        if self.extend_textbox_width is None:
+        if self.extend_textbox_width == False:
             return
         textboxes = 0
         for shape in slide.shapes:
@@ -283,3 +286,18 @@ class PythonPPTXManager:
                 ):
                     shape.width = self.new_width if self.new_width else self.old_width
                     shape.left = 0
+    
+    def merge_table_rows(self, slide):
+        if self.merge_rows == False:
+            return
+        for shape in slide.shapes:
+            if shape.has_table:
+                for cell in shape.table.iter_cells():
+                    if cell.is_merge_origin:
+                        cell.split()
+                    
+                for row in shape.table.rows:
+                    last_cell_idx = len(row.cells)-1
+                    row.cells[0].merge(row.cells[last_cell_idx])
+
+    

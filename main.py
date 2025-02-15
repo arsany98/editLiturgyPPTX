@@ -307,6 +307,11 @@ def reformat_slides_ui(root, files):
         frm, text="Textbox Match slide width", variable=extend_textbox_width
     ).grid(row=14, column=0, sticky=W)
 
+    merge_rows = BooleanVar()
+    ttk.Checkbutton(
+        frm, text="Merge Rows", variable=merge_rows
+    ).grid(row=15, column=0, sticky=W)
+
     def edit_file(file):
         editor = PythonPPTXManager(
             validate(width.get(), False),
@@ -320,6 +325,7 @@ def reformat_slides_ui(root, files):
             validate(line_width.get(), False),
             validate(textbox_position.get(), False),
             extend_textbox_width.get(),
+            merge_rows.get()
         )
         editor.edit_ppt(file)
         aspose_manager.edit_ppt(
@@ -347,8 +353,8 @@ def reformat_slides_ui(root, files):
         except Exception as e:
             messagebox.showerror("Invalid Input", e)
 
-    ttk.Button(frm, text="Apply", command=apply_command).grid(row=14, column=3)
-    ttk.Button(frm, text="Quit", command=root.destroy).grid(row=14, column=4)
+    ttk.Button(frm, text="Apply", command=apply_command).grid(row=16, column=3)
+    ttk.Button(frm, text="Quit", command=root.destroy).grid(row=16, column=4)
     root.mainloop()
 
 
